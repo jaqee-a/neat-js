@@ -1,0 +1,22 @@
+{
+  "name": "neat",
+  "version": "0.0.1",
+  "description": "A Neuroevolution of augmenting topologies (NEAT) implementation using Typescript",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jaqee-a/neat-js.git"
+  },
+  "author": "Bouderbala Mohammed Amine",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jaqee-a/neat-js/issues"
+  },
+  "homepage": "https://github.com/jaqee-a/neat-js#readme",
+  "devDependencies": {
+    "typescript": "^5.1.6"
+  }
+}
