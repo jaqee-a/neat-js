@@ -17,7 +17,7 @@ interface Node {
     activation: ActivationFunction;
     valueBeforeActivation: number;
     valueAfterActivation: number;
-    // layerNumber: number;
+    layerNumber: number;
 }
 
 // const ReLU: ActivationFunction = (x: number): number => { return (x > 0 ? 1 : 0) * x; }
@@ -65,7 +65,8 @@ export class Genome {
                 type: 'INPUT',
                 activation: Sigmoid,
                 valueAfterActivation: 0,
-                valueBeforeActivation: 0
+                valueBeforeActivation: 0,
+                layerNumber: 0
             };
 
             for(let j = 0; j < this.outputCount; ++j) {
@@ -74,7 +75,7 @@ export class Genome {
                     out: this.inputCount + j,
                     weight: Math.random(),
                     enabled: true,
-                    innov: (this.outputCount * i) + j
+                    innov: -((this.outputCount * i) + j + 1)
                 }
                 this.addConnection(connection);
             }
@@ -90,7 +91,8 @@ export class Genome {
                 type: 'OUTPUT',
                 activation: Sigmoid,
                 valueBeforeActivation: 0,
-                valueAfterActivation: 0
+                valueAfterActivation: 0,
+                layerNumber: 1
             }
             this.nodes.set(i, node);
         }
@@ -115,22 +117,63 @@ export class Genome {
         this.addConnection(newConnection);
     }
 
+    constructTopologicalNetwork(): void {
+        const inputIds: Array<number> = this.inputNodes.map((node: Node) => node.id);
+
+        const inMap: Map<number, Array<number>> = new Map<number, Array<number>>();
+        
+        for(const connection of this.connections) {
+            if(!inMap.has(connection.in)){
+                inMap.set(connection.in, new Array<number>());
+            }
+
+            inMap.get(connection.in)?.push(connection.out);
+        }
+
+        while(inputIds.length) {
+            const node_id: number = inputIds.pop()!;
+            const node: Node = this.nodes.get(node_id)!;
+
+            const currentLayer: number = node.layerNumber;
+
+            for(const outNodeId of inMap.get(node.id) || []) {
+                const outNode: Node | undefined = this.nodes.get(outNodeId);
+                if(outNode === undefined) continue;
+                outNode!.layerNumber = Math.max(currentLayer + 1, outNode?.layerNumber!);
+
+                inputIds.unshift(outNode.id);
+            }
+        }
+    }
+
     // DONE
     private getRandomEnabledConnection(): Connection {
         const enabledConnections: Array<Connection> = this.connections.filter((connection: Connection) => connection.enabled);
         return enabledConnections[(Math.random() * enabledConnections.length) >> 0];
     }
 
+    // private pushFollowingNodes(node_id: number): void {
+    //     // ID
+    //     const nodeList: Array<number> = 
+    //         this.connections.filter((connection: Connection) => connection.in === node_id).map((connection: Connection) => connection.out);
+    //     
+    //     for(const node of nodeList) {
+    //         this.pushFollowingNodes(node);
+    //         this.nodes.get(node)!.layerNumber++;
+    //     }
+    // }
+
     // DONE
     private addNodeMutation() {
         const randConnection = this.getRandomEnabledConnection();
-
+        
         const node: Node = {
             id: this._node_count,
             type: 'HIDDEN',
             valueAfterActivation: 0,
             valueBeforeActivation: 0,
-            activation: Sigmoid
+            activation: Sigmoid,
+            layerNumber: 0
         };
 
         const conn1: Connection = {
@@ -180,8 +223,10 @@ export class Genome {
         const rnd: number = Math.random();
 
         if(rnd < 0.25) {
+            console.log('CONNECTION MUTATION');
             this.addConnectionMutation();
         }else if(rnd < 0.5) {
+            console.log('NODE MUTATION');
             this.addNodeMutation();
         }
     }
@@ -215,7 +260,6 @@ export class Genome {
         return genome;
     }
 
-
     calculateOutput(inputs: Array<number>): number {
         let output: number = 0;
 
@@ -244,6 +288,31 @@ export class Genome {
         }
 
         return output;
+    }
+
+
+    printNetwork(): void {
+        const nodes: Array<Node> = Array.from(this.nodes.values());
+        const layerMap: Map<number, Array<Node>> = new Map<number, Array<Node>>();
+        let maxLayerNumber: number = 0;
+        for(const node of nodes) {
+            if(!layerMap.has(node.layerNumber)) {
+                layerMap.set(node.layerNumber, new Array<Node>());
+            }
+            layerMap.get(node.layerNumber)!.push(node);
+
+            if(node.layerNumber > maxLayerNumber) maxLayerNumber = node.layerNumber;
+        }
+
+        for(let i=1; i<maxLayerNumber+1; ++i) {
+            const nodesInLayer: Array<Node> = layerMap.get(i)!;
+
+            console.log('ID | LAYER');
+            for(const node of nodesInLayer) {
+                console.log(node.id, i);
+            }
+
+        }
     }
 
 
