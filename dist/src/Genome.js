@@ -92,10 +92,24 @@ class Genome {
         this._node_count = this.inputCount + this.outputCount;
     }
     getUnconnectedNodes() {
-        return [0, 0];
+        const nodes = Array.from(this.nodes.values());
+        const node1 = nodes[(Math.random() * nodes.length) << 0].id;
+        let node2;
+        do {
+            node2 = nodes[(Math.random() * nodes.length) << 0].id;
+        } while (node1 === node2);
+        return [node1, node2];
     }
     addConnectionMutation() {
-        const [node1, node2] = this.getUnconnectedNodes();
+        let [node1, node2] = this.getUnconnectedNodes();
+        if (this.nodes.get(node2).layerNumber < this.nodes.get(node1).layerNumber) {
+            let tmp = node1;
+            node1 = node2;
+            node2 = tmp;
+        }
+        const _similarConnections = this.connections.filter((connection) => connection.in == node1 && connection.out == node2).length;
+        if (_similarConnections > 0)
+            return;
         const newConnection = {
             innov: Innov_1.InnovationFactory.GenNewInnovationNumber(),
             weight: Math.random(),
@@ -178,11 +192,11 @@ class Genome {
     }
     mutate() {
         const rnd = Math.random();
-        if (rnd < 0) {
+        if (rnd < 0.25) {
             console.log('CONNECTION MUTATION');
             this.addConnectionMutation();
         }
-        else if (rnd < 1) {
+        else if (rnd < 0.5) {
             console.log('NODE MUTATION');
             this.addNodeMutation();
         }
