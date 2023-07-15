@@ -1,25 +1,25 @@
-import { Genome } from "./Genome";
+// import { Genome } from "./Genome";
 
 
 
 
-type fitnessFunction<T> = (p: T) => number;
+// type fitnessFunction<T> = (p: T) => number;
 
-export class Population<PlayerClass> {
+// export class Population<PlayerClass> {
 
-    private generationNumber: number;
+//     private generationNumber: number;
 
-    constructor(private fitnessFn: fitnessFunction<PlayerClass>) {
-        this.generationNumber = 0;
-    }
+//     constructor(private fitnessFn: fitnessFunction<PlayerClass>) {
+//         this.generationNumber = 0;
+//     }
 
 
-    selection() { }
+//     selection() { }
 
-    reproduction() {}
+//     reproduction() {}
 
-    crossover() { }
+//     crossover() { }
 
-    mutation() { }
+//     mutation() { }
 
-}
+// }

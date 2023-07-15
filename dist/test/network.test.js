@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const Genome_1 = require("../src/Genome");
+const genome = new Genome_1.Genome(3, 4);
+genome.mutate();
+genome.mutate();
+genome.mutate();
+genome.mutate();
+genome.mutate();
+genome.mutate();
+genome.mutate();
+genome.mutate();
+genome.mutate();
+genome.constructTopologicalNetwork();
+genome.printNetwork();

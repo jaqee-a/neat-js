@@ -3,6 +3,11 @@ import { InnovationFactory } from "./Innov";
 type NodeType = 'INPUT' | 'OUTPUT' | 'HIDDEN';
 type ActivationFunction = (x: number) => number;
 
+interface NodeByLayerOutput {
+    maxLayerNumber: number;
+    layerMap: Map<number, Array<Node>>;
+}
+
 interface Connection {
     in: number;
     out: number;
@@ -79,10 +84,13 @@ export class Genome {
                 }
                 this.addConnection(connection);
             }
-
+        
             this.nodes.set(i, node);
-            this.inputNodes.push(node);
+            this.inputNodes[i] = node;
         }
+        // console.log("CONNECTIONS NUMBER: ", this.connections.length);
+        // console.log("INPUT NODES", this.inputNodes);
+        
         
 
         for(let i = 0; i < this.outputCount; ++i) {
@@ -94,7 +102,7 @@ export class Genome {
                 valueAfterActivation: 0,
                 layerNumber: 1
             }
-            this.nodes.set(i, node);
+            this.nodes.set(this.inputCount + i, node);
         }
 
         this._node_count = this.inputCount + this.outputCount;
@@ -132,6 +140,7 @@ export class Genome {
 
         while(inputIds.length) {
             const node_id: number = inputIds.pop()!;
+            
             const node: Node = this.nodes.get(node_id)!;
 
             const currentLayer: number = node.layerNumber;
@@ -222,10 +231,10 @@ export class Genome {
     mutate(): void {
         const rnd: number = Math.random();
 
-        if(rnd < 0.25) {
+        if(rnd < 0) {
             console.log('CONNECTION MUTATION');
             this.addConnectionMutation();
-        }else if(rnd < 0.5) {
+        }else if(rnd < 1) {
             console.log('NODE MUTATION');
             this.addNodeMutation();
         }
@@ -265,36 +274,37 @@ export class Genome {
 
         if(inputs.length !== this.inputNodes.length) throw new Error("Input vector length does not match input nodes count");
        
-        const sortedConnections: Connection[] = this.connections.sort((a: Connection, b: Connection) => {
-            return a.out - b.out;
+        const sortedNodes: Array<Node> = Array.from(this.nodes.values()).sort((a: Node, b: Node) => {
+            return a.layerNumber - b.layerNumber;
         });
 
         for(let i = 0; i < this.inputNodes.length; ++i) {
             this.inputNodes[i].valueAfterActivation = inputs[i];
         }
 
-        for(const connection of sortedConnections) {
-            if(!connection.enabled) continue;
+        for(const _ of sortedNodes) {
+            // if(!connection.enabled) continue;
 
-            if(!this.nodes.has(connection.in))
-                throw new Error(`Node with id ${connection.in} does not exist while a connection from that node exist`);
+            // if(!this.nodes.has(connection.in))
+            //     throw new Error(`Node with id ${connection.in} does not exist while a connection from that node exist`);
 
-            if(!this.nodes.has(connection.out))
-                throw new Error(`Node with id ${connection.out} does not exist while a connection into that node exist`);
+            // if(!this.nodes.has(connection.out))
+            //     throw new Error(`Node with id ${connection.out} does not exist while a connection into that node exist`);
 
-            const inNode: Node = this.nodes.get(connection.in)!;
-            const outNode: Node = this.nodes.get(connection.out)!;
-            
+            // const inNode: Node = this.nodes.get(connection.in)!;
+            // const outNode: Node = this.nodes.get(connection.out)!;
+            // 
         }
 
         return output;
     }
 
 
-    printNetwork(): void {
+    getNodesByLayer(): NodeByLayerOutput {
         const nodes: Array<Node> = Array.from(this.nodes.values());
         const layerMap: Map<number, Array<Node>> = new Map<number, Array<Node>>();
         let maxLayerNumber: number = 0;
+
         for(const node of nodes) {
             if(!layerMap.has(node.layerNumber)) {
                 layerMap.set(node.layerNumber, new Array<Node>());
@@ -304,7 +314,17 @@ export class Genome {
             if(node.layerNumber > maxLayerNumber) maxLayerNumber = node.layerNumber;
         }
 
-        for(let i=1; i<maxLayerNumber+1; ++i) {
+        return {
+            maxLayerNumber,
+            layerMap
+        };
+    }
+
+
+    printNetwork(): void {
+        const {layerMap, maxLayerNumber} = this.getNodesByLayer();
+
+        for(let i=0; i<maxLayerNumber+1; ++i) {
             const nodesInLayer: Array<Node> = layerMap.get(i)!;
 
             console.log('ID | LAYER');
