@@ -224,6 +224,30 @@ class Genome {
         this.nodes.forEach((node) => genome.addNode(Object.assign({}, node)));
         return genome;
     }
+    calculateOutput2(inputs) {
+        if (inputs.length !== this.inputNodes.length)
+            throw new Error("Input vector length does not match input nodes count");
+        const calculatedNodes = new Map();
+        for (let i = 0; i < this.inputNodes.length; ++i) {
+            calculatedNodes.set(this.inputNodes[i].id, inputs[i]);
+        }
+        const calculateNode = (node) => {
+            const node_id = node.id;
+            if (calculatedNodes.has(node_id))
+                return calculatedNodes.get(node_id);
+            let incommingConnections = this.connections.filter((connection) => node_id === connection.out);
+            let total = 0;
+            for (const connection of incommingConnections) {
+                if (!connection.enabled)
+                    continue;
+                total += calculateNode(this.nodes.get(connection.in)) * connection.weight;
+            }
+            const activatedTotal = node.activation(total);
+            calculatedNodes.set(node_id, activatedTotal);
+            return activatedTotal;
+        };
+        return Array.from(this.nodes.values()).filter((node) => node.type === 'OUTPUT').map((node) => calculateNode(node));
+    }
     calculateOutput(inputs) {
         let output = new Array(this.outputCount);
         if (inputs.length !== this.inputNodes.length)
@@ -249,6 +273,14 @@ class Genome {
         for (let i = 0; i < this.outputCount; ++i) {
             const node = outputNodes[i];
             output[i] = node.activation(node.valueBeforeActivation);
+        }
+        for (const connection of sortedConnections) {
+            const inNode = this.nodes.get(connection.in);
+            const outNode = this.nodes.get(connection.out);
+            inNode.valueBeforeActivation = 0;
+            outNode.valueBeforeActivation = 0;
+            inNode.valueAfterActivation = 0;
+            outNode.valueAfterActivation = 0;
         }
         return output;
     }

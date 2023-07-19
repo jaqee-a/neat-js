@@ -31,4 +31,5 @@ const genomeClone = genome.clone();
 genomeClone.constructTopologicalNetwork();
 // console.log(Array.from(genomeClone.nodes.values()).filter((n)=>n.type==='OUTPUT'))
 
-console.log(genomeClone.calculateOutput([Math.random(), Math.random(), Math.random()]));
+const randoms = [Math.random(), Math.random(), Math.random()];
+console.log(genomeClone.calculateOutput(randoms));

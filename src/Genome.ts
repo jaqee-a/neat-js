@@ -290,59 +290,92 @@ export class Genome {
     }
 
     calculateOutput(inputs: Array<number>): Array<number> {
-        let output: Array<number> = new Array<number>(this.outputCount);
-
         if(inputs.length !== this.inputNodes.length) throw new Error("Input vector length does not match input nodes count");
-       
-        // const sortedNodes: Array<Node> = Array.from(this.nodes.values()).sort((a: Node, b: Node) => {
-        //     return a.layerNumber - b.layerNumber;
-        // });
+
+        const calculatedNodes: Map<number, number> = new Map<number, number>();
 
         for(let i = 0; i < this.inputNodes.length; ++i) {
-            this.inputNodes[i].valueAfterActivation = inputs[i];
+            // this.inputNodes[i].valueAfterActivation = inputs[i];
+            calculatedNodes.set(this.inputNodes[i].id, inputs[i]);
+        }
+        
+        const calculateNode = (node: Node): number => {
+            const node_id = node.id;
+            if(calculatedNodes.has(node_id)) return calculatedNodes.get(node_id)!;
+
+            let incommingConnections: Array<Connection> = this.connections.filter((connection: Connection) => 
+                node_id === connection.out);
+
+            let total: number = 0;
+            for(const connection of incommingConnections) {
+                if(!connection.enabled) continue;
+
+                total += calculateNode(this.nodes.get(connection.in)!) * connection.weight;
+            }
+
+            const activatedTotal = node.activation(total);
+            calculatedNodes.set(node_id, activatedTotal);
+            return activatedTotal;
         }
 
-        const sortedConnections: Array<Connection> = this.connections.sort((a: Connection, b: Connection) => {
-            return this.nodes.get(a.in)!.layerNumber - this.nodes.get(b.in)!.layerNumber;
-        });
+        return Array.from(this.nodes.values()).filter((node: Node) => node.type === 'OUTPUT').map((node: Node) => calculateNode(node));
 
-        for(const connection of sortedConnections) {
-            if(!connection.enabled) continue;
-
-            const inNode: Node = this.nodes.get(connection.in)!;
-            const outNode: Node = this.nodes.get(connection.out)!;
-
-            if(inNode.layerNumber !== 0)
-                inNode.valueAfterActivation = inNode.activation(inNode.valueBeforeActivation);
-
-            outNode.valueBeforeActivation += inNode.valueAfterActivation * connection.weight;
-        }
-
-
-        const outputNodes: Array<Node> = Array.from(this.nodes.values())
-                                              .filter((node: Node)=>node.type ==='OUTPUT')
-                                              .sort((a: Node, b: Node)=>a.id - b.id);
-
-        for(let i = 0; i < this.outputCount; ++i) {
-            const node: Node = outputNodes[i];
-            
-            output[i] = node.activation(node.valueBeforeActivation);
-        }
-
-        for(const connection of sortedConnections) {
-
-            const inNode: Node = this.nodes.get(connection.in)!;
-            const outNode: Node = this.nodes.get(connection.out)!;
-
-            inNode.valueBeforeActivation = 0;
-            outNode.valueBeforeActivation = 0;
-
-            inNode.valueAfterActivation = 0;
-            outNode.valueAfterActivation = 0;
-        }
-
-        return output;
     }
+
+    // calculateOutput(inputs: Array<number>): Array<number> {
+    //     let output: Array<number> = new Array<number>(this.outputCount);
+
+    //     if(inputs.length !== this.inputNodes.length) throw new Error("Input vector length does not match input nodes count");
+    //    
+    //     // const sortedNodes: Array<Node> = Array.from(this.nodes.values()).sort((a: Node, b: Node) => {
+    //     //     return a.layerNumber - b.layerNumber;
+    //     // });
+
+    //     for(let i = 0; i < this.inputNodes.length; ++i) {
+    //         this.inputNodes[i].valueAfterActivation = inputs[i];
+    //     }
+
+    //     const sortedConnections: Array<Connection> = this.connections.sort((a: Connection, b: Connection) => {
+    //         return this.nodes.get(a.in)!.layerNumber - this.nodes.get(b.in)!.layerNumber;
+    //     });
+
+    //     for(const connection of sortedConnections) {
+    //         if(!connection.enabled) continue;
+
+    //         const inNode: Node = this.nodes.get(connection.in)!;
+    //         const outNode: Node = this.nodes.get(connection.out)!;
+
+    //         if(inNode.layerNumber !== 0)
+    //             inNode.valueAfterActivation = inNode.activation(inNode.valueBeforeActivation);
+
+    //         outNode.valueBeforeActivation += inNode.valueAfterActivation * connection.weight;
+    //     }
+
+
+    //     const outputNodes: Array<Node> = Array.from(this.nodes.values())
+    //                                           .filter((node: Node)=>node.type ==='OUTPUT')
+    //                                           .sort((a: Node, b: Node)=>a.id - b.id);
+
+    //     for(let i = 0; i < this.outputCount; ++i) {
+    //         const node: Node = outputNodes[i];
+    //         
+    //         output[i] = node.activation(node.valueBeforeActivation);
+    //     }
+
+    //     for(const connection of sortedConnections) {
+
+    //         const inNode: Node = this.nodes.get(connection.in)!;
+    //         const outNode: Node = this.nodes.get(connection.out)!;
+
+    //         inNode.valueBeforeActivation = 0;
+    //         outNode.valueBeforeActivation = 0;
+
+    //         inNode.valueAfterActivation = 0;
+    //         outNode.valueAfterActivation = 0;
+    //     }
+
+    //     return output;
+    // }
 
 
     getNodesByLayer(): NodeByLayerOutput {
