@@ -318,6 +318,17 @@ export class Genome {
             outNode.valueBeforeActivation += inNode.valueAfterActivation * connection.weight;
         }
 
+
+        const outputNodes: Array<Node> = Array.from(this.nodes.values())
+                                              .filter((node: Node)=>node.type ==='OUTPUT')
+                                              .sort((a: Node, b: Node)=>a.id - b.id);
+
+        for(let i = 0; i < this.outputCount; ++i) {
+            const node: Node = outputNodes[i];
+            
+            output[i] = node.activation(node.valueBeforeActivation);
+        }
+
         for(const connection of sortedConnections) {
 
             const inNode: Node = this.nodes.get(connection.in)!;
@@ -328,17 +339,6 @@ export class Genome {
 
             inNode.valueAfterActivation = 0;
             outNode.valueAfterActivation = 0;
-        }
-        
-
-        const outputNodes: Array<Node> = Array.from(this.nodes.values())
-                                              .filter((node: Node)=>node.type ==='OUTPUT')
-                                              .sort((a: Node, b: Node)=>a.id - b.id);
-
-        for(let i = 0; i < this.outputCount; ++i) {
-            const node: Node = outputNodes[i];
-            
-            output[i] = node.activation(node.valueBeforeActivation);
         }
 
         return output;
