@@ -318,6 +318,18 @@ export class Genome {
             outNode.valueBeforeActivation += inNode.valueAfterActivation * connection.weight;
         }
 
+        for(const connection of sortedConnections) {
+
+            const inNode: Node = this.nodes.get(connection.in)!;
+            const outNode: Node = this.nodes.get(connection.out)!;
+
+            inNode.valueBeforeActivation = 0;
+            outNode.valueBeforeActivation = 0;
+
+            inNode.valueAfterActivation = 0;
+            outNode.valueAfterActivation = 0;
+        }
+        
 
         const outputNodes: Array<Node> = Array.from(this.nodes.values())
                                               .filter((node: Node)=>node.type ==='OUTPUT')
