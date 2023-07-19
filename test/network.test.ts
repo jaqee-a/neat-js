@@ -25,3 +25,6 @@ genome.constructTopologicalNetwork();
 genome.mutate();
 genome.constructTopologicalNetwork();
 genome.printNetwork();
+
+
+console.log(genome.calculateOutput([Math.random(), Math.random(), Math.random()]));

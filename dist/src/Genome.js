@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Genome = void 0;
 const Innov_1 = require("./Innov");
-const Sigmoid = (x) => { return 1 / (1 + Math.exp(-x)); };
+const ReLU = (x) => { return (x > 0 ? 1 : 0) * x; };
 class Genome {
     constructor(inputCount, outputCount, initialize = true) {
         Object.defineProperty(this, "inputCount", {
@@ -60,7 +60,7 @@ class Genome {
             const node = {
                 id: i,
                 type: 'INPUT',
-                activation: Sigmoid,
+                activation: ReLU,
                 valueAfterActivation: 0,
                 valueBeforeActivation: 0,
                 layerNumber: 0
@@ -82,7 +82,7 @@ class Genome {
             const node = {
                 id: this.inputCount + i,
                 type: 'OUTPUT',
-                activation: Sigmoid,
+                activation: ReLU,
                 valueBeforeActivation: 0,
                 valueAfterActivation: 0,
                 layerNumber: 1
@@ -153,7 +153,7 @@ class Genome {
             type: 'HIDDEN',
             valueAfterActivation: 0,
             valueBeforeActivation: 0,
-            activation: Sigmoid,
+            activation: ReLU,
             layerNumber: 0
         };
         const conn1 = {
@@ -221,16 +221,27 @@ class Genome {
         return genome;
     }
     calculateOutput(inputs) {
-        let output = 0;
+        let output = new Array(this.outputCount);
         if (inputs.length !== this.inputNodes.length)
             throw new Error("Input vector length does not match input nodes count");
-        const sortedNodes = Array.from(this.nodes.values()).sort((a, b) => {
-            return a.layerNumber - b.layerNumber;
-        });
         for (let i = 0; i < this.inputNodes.length; ++i) {
             this.inputNodes[i].valueAfterActivation = inputs[i];
         }
-        for (const _ of sortedNodes) {
+        const sortedConnections = this.connections.sort((a, b) => {
+            return this.nodes.get(a.in).layerNumber - this.nodes.get(b.in).layerNumber;
+        });
+        for (const connection of sortedConnections) {
+            if (!connection.enabled)
+                continue;
+            const inNode = this.nodes.get(connection.in);
+            const outNode = this.nodes.get(connection.out);
+            if (inNode.layerNumber !== 0)
+                inNode.valueAfterActivation = inNode.activation(inNode.valueBeforeActivation);
+            outNode.valueBeforeActivation += inNode.valueAfterActivation * connection.weight;
+        }
+        for (let i = 0; i < this.outputCount; ++i) {
+            const node = this.nodes.get(this.inputCount + i);
+            output[i] = node.activation(node.valueBeforeActivation);
         }
         return output;
     }
