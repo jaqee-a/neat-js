@@ -50,10 +50,14 @@ class Genome {
         this.nodes = new Map();
         this.connectionsLUT = new Map();
         this.connections = new Array();
-        this.inputNodes = new Array(this.inputCount);
         this._node_count = 0;
-        if (initialize)
+        if (initialize) {
+            this.inputNodes = new Array(this.inputCount);
             this.createInitialNodes();
+        }
+        else {
+            this.inputNodes = new Array();
+        }
     }
     createInitialNodes() {
         for (let i = 0; i < this.inputCount; ++i) {

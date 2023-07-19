@@ -54,12 +54,15 @@ export class Genome {
         this.connectionsLUT = new Map<number, Connection>();
         this.connections = new Array<Connection>();
 
-        this.inputNodes = new Array<Node>(this.inputCount);
 
         this._node_count = 0;
 
-        if(initialize)
-        this.createInitialNodes();
+        if(initialize) {
+            this.inputNodes = new Array<Node>(this.inputCount);
+            this.createInitialNodes();
+        }else{
+            this.inputNodes = new Array<Node>();
+        }
     }
 
     // DONE
