@@ -243,8 +243,11 @@ class Genome {
                 inNode.valueAfterActivation = inNode.activation(inNode.valueBeforeActivation);
             outNode.valueBeforeActivation += inNode.valueAfterActivation * connection.weight;
         }
+        const outputNodes = Array.from(this.nodes.values())
+            .filter((node) => node.type === 'OUTPUT')
+            .sort((a, b) => a.id - b.id);
         for (let i = 0; i < this.outputCount; ++i) {
-            const node = this.nodes.get(this.inputCount + i);
+            const node = outputNodes[i];
             output[i] = node.activation(node.valueBeforeActivation);
         }
         return output;

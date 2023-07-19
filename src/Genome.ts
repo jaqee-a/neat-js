@@ -35,7 +35,7 @@ const ReLU: ActivationFunction = (x: number): number => { return (x > 0 ? 1 : 0)
 
 export class Genome {
 
-    private nodes: Map<number, Node>;
+    public nodes: Map<number, Node>;
     // INNOV -> CONNECTION
     private connectionsLUT: Map<number, Connection>;
 
@@ -318,9 +318,14 @@ export class Genome {
             outNode.valueBeforeActivation += inNode.valueAfterActivation * connection.weight;
         }
 
-        for(let i = 0; i < this.outputCount; ++i) {
-            const node: Node = this.nodes.get(this.inputCount + i)!;
 
+        const outputNodes: Array<Node> = Array.from(this.nodes.values())
+                                              .filter((node: Node)=>node.type ==='OUTPUT')
+                                              .sort((a: Node, b: Node)=>a.id - b.id);
+
+        for(let i = 0; i < this.outputCount; ++i) {
+            const node: Node = outputNodes[i];
+            
             output[i] = node.activation(node.valueBeforeActivation);
         }
 
