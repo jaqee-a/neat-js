@@ -20,8 +20,8 @@ interface Node {
     id: number;
     type: NodeType;
     activation: ActivationFunction;
-    valueBeforeActivation: number;
-    valueAfterActivation: number;
+    // valueBeforeActivation: number;
+    // valueAfterActivation: number;
     layerNumber: number;
 }
 
@@ -72,8 +72,6 @@ export class Genome {
                 id: i,
                 type: 'INPUT',
                 activation: ReLU,
-                valueAfterActivation: 0,
-                valueBeforeActivation: 0,
                 layerNumber: 0
             };
 
@@ -101,8 +99,6 @@ export class Genome {
                 id: this.inputCount + i,
                 type: 'OUTPUT',
                 activation: ReLU,
-                valueBeforeActivation: 0,
-                valueAfterActivation: 0,
                 layerNumber: 1
             }
             this.nodes.set(this.inputCount + i, node);
@@ -114,10 +110,11 @@ export class Genome {
     private getUnconnectedNodes(): [number, number] {
         const nodes: Array<Node> = Array.from(this.nodes.values());
         const node1: number = nodes[(Math.random() * nodes.length) << 0].id;
+        let MAX_ITER = 10;
         let node2: number;
         do {
             node2 = nodes[(Math.random() * nodes.length) << 0].id;
-        } while(node1 === node2);
+        } while(node1 === node2 && MAX_ITER--);
         return [node1, node2];
     }
 
@@ -199,8 +196,6 @@ export class Genome {
         const node: Node = {
             id: this._node_count,
             type: 'HIDDEN',
-            valueAfterActivation: 0,
-            valueBeforeActivation: 0,
             activation: ReLU,
             layerNumber: 0
         };
