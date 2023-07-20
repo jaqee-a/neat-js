@@ -243,15 +243,17 @@ export class Genome {
         this.connectionsLUT.set(connection.innov, connection);
     }
 
-    mutate(): void {
+    mutate(mutation_chance: number = 0.3): void {
         const rnd: number = Math.random();
 
-        if(rnd < 0.25) {
-            console.log('CONNECTION MUTATION');
-            this.addConnectionMutation();
-        }else if(rnd < 0.5) {
-            console.log('NODE MUTATION');
-            this.addNodeMutation();
+        if(rnd < mutation_chance) {
+            if(rnd < mutation_chance / 2){
+                console.log('CONNECTION MUTATION');
+                this.addConnectionMutation();
+            }else{
+                console.log('NODE MUTATION');
+                this.addNodeMutation();
+            }
         }
     }
 
