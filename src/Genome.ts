@@ -142,6 +142,29 @@ export class Genome {
         this.addConnection(newConnection);
     }
 
+    // constructTopologicalNetwork2(): void {
+    //     
+    //     const calculateNode = (node: Node, layerIndex: number): void => {
+    //         const node_id = node.id;
+
+    //         node.layerNumber = Math.min(layerIndex, node.layerNumber);
+
+    //         let incommingConnections: Array<Connection> = this.connections.filter((connection: Connection) => 
+    //             node_id === connection.out);
+
+    //         console.log(node_id);
+    //         for(const connection of incommingConnections) {
+    //             calculateNode(this.nodes.get(connection.in)!, layerIndex+1);
+    //         }
+
+    //     }
+
+    //     Array.from(this.nodes.values())
+    //         .filter((node: Node) => node.type === 'OUTPUT')
+    //         .forEach((node: Node) => calculateNode(node, 0));
+
+    // }
+
     constructTopologicalNetwork(): void {
         const inputIds: Array<number> = this.inputNodes.map((node: Node) => node.id);
 

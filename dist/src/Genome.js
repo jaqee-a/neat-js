@@ -65,8 +65,6 @@ class Genome {
                 id: i,
                 type: 'INPUT',
                 activation: ReLU,
-                valueAfterActivation: 0,
-                valueBeforeActivation: 0,
                 layerNumber: 0
             };
             for (let j = 0; j < this.outputCount; ++j) {
@@ -87,8 +85,6 @@ class Genome {
                 id: this.inputCount + i,
                 type: 'OUTPUT',
                 activation: ReLU,
-                valueBeforeActivation: 0,
-                valueAfterActivation: 0,
                 layerNumber: 1
             };
             this.nodes.set(this.inputCount + i, node);
@@ -98,10 +94,11 @@ class Genome {
     getUnconnectedNodes() {
         const nodes = Array.from(this.nodes.values());
         const node1 = nodes[(Math.random() * nodes.length) << 0].id;
+        let MAX_ITER = 10;
         let node2;
         do {
             node2 = nodes[(Math.random() * nodes.length) << 0].id;
-        } while (node1 === node2);
+        } while (node1 === node2 && MAX_ITER--);
         return [node1, node2];
     }
     addConnectionMutation() {
@@ -122,6 +119,20 @@ class Genome {
             out: node2
         };
         this.addConnection(newConnection);
+    }
+    constructTopologicalNetwork2() {
+        const calculateNode = (node, layerIndex) => {
+            const node_id = node.id;
+            node.layerNumber = Math.min(layerIndex, node.layerNumber);
+            let incommingConnections = this.connections.filter((connection) => node_id === connection.out);
+            console.log(node_id);
+            for (const connection of incommingConnections) {
+                calculateNode(this.nodes.get(connection.in), layerIndex + 1);
+            }
+        };
+        Array.from(this.nodes.values())
+            .filter((node) => node.type === 'OUTPUT')
+            .forEach((node) => calculateNode(node, 0));
     }
     constructTopologicalNetwork() {
         var _a;
@@ -155,8 +166,6 @@ class Genome {
         const node = {
             id: this._node_count,
             type: 'HIDDEN',
-            valueAfterActivation: 0,
-            valueBeforeActivation: 0,
             activation: ReLU,
             layerNumber: 0
         };
@@ -194,15 +203,17 @@ class Genome {
         this.connections.push(connection);
         this.connectionsLUT.set(connection.innov, connection);
     }
-    mutate() {
+    mutate(mutation_chance = 0.3) {
         const rnd = Math.random();
-        if (rnd < 0.25) {
-            console.log('CONNECTION MUTATION');
-            this.addConnectionMutation();
-        }
-        else if (rnd < 0.5) {
-            console.log('NODE MUTATION');
-            this.addNodeMutation();
+        if (rnd < mutation_chance) {
+            if (rnd < mutation_chance / 2) {
+                console.log('CONNECTION MUTATION');
+                this.addConnectionMutation();
+            }
+            else {
+                console.log('NODE MUTATION');
+                this.addNodeMutation();
+            }
         }
     }
     crossover(parent2) {
@@ -224,7 +235,7 @@ class Genome {
         this.nodes.forEach((node) => genome.addNode(Object.assign({}, node)));
         return genome;
     }
-    calculateOutput2(inputs) {
+    calculateOutput(inputs) {
         if (inputs.length !== this.inputNodes.length)
             throw new Error("Input vector length does not match input nodes count");
         const calculatedNodes = new Map();
@@ -247,42 +258,6 @@ class Genome {
             return activatedTotal;
         };
         return Array.from(this.nodes.values()).filter((node) => node.type === 'OUTPUT').map((node) => calculateNode(node));
-    }
-    calculateOutput(inputs) {
-        let output = new Array(this.outputCount);
-        if (inputs.length !== this.inputNodes.length)
-            throw new Error("Input vector length does not match input nodes count");
-        for (let i = 0; i < this.inputNodes.length; ++i) {
-            this.inputNodes[i].valueAfterActivation = inputs[i];
-        }
-        const sortedConnections = this.connections.sort((a, b) => {
-            return this.nodes.get(a.in).layerNumber - this.nodes.get(b.in).layerNumber;
-        });
-        for (const connection of sortedConnections) {
-            if (!connection.enabled)
-                continue;
-            const inNode = this.nodes.get(connection.in);
-            const outNode = this.nodes.get(connection.out);
-            if (inNode.layerNumber !== 0)
-                inNode.valueAfterActivation = inNode.activation(inNode.valueBeforeActivation);
-            outNode.valueBeforeActivation += inNode.valueAfterActivation * connection.weight;
-        }
-        const outputNodes = Array.from(this.nodes.values())
-            .filter((node) => node.type === 'OUTPUT')
-            .sort((a, b) => a.id - b.id);
-        for (let i = 0; i < this.outputCount; ++i) {
-            const node = outputNodes[i];
-            output[i] = node.activation(node.valueBeforeActivation);
-        }
-        for (const connection of sortedConnections) {
-            const inNode = this.nodes.get(connection.in);
-            const outNode = this.nodes.get(connection.out);
-            inNode.valueBeforeActivation = 0;
-            outNode.valueBeforeActivation = 0;
-            inNode.valueAfterActivation = 0;
-            outNode.valueAfterActivation = 0;
-        }
-        return output;
     }
     getNodesByLayer() {
         const nodes = Array.from(this.nodes.values());
